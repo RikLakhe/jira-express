@@ -1,0 +1,41 @@
+{
+  "name": "jira-express",
+  "version": "0.0.0",
+  "description": "jira express server with api and fe",
+  "main": "index.js",
+  "repository": "git@github.com:RikLakhe/jira-express.git",
+  "author": "Rikesh",
+  "license": "MIT",
+  "engines": {
+    "node": "14.x"
+  },
+  "scripts": {
+    "dev": "concurrently \"yarn dev:client\" \"yarn dev:server\"",
+    "dev:server": "NODE_ENV=development yarn babel-watch -L src/index.js",
+    "dev:client": "NODE_ENV=development cd jira-client && yarn start",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./build/index.js",
+    "clean": "rm -rf build && mkdir build ",
+    "build-babel": "babel -d ./build ./src -s",
+    "server:build": "yarn run clean && yarn run build-babel",
+    "client:build": "cd jira-client && yarn build",
+    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false yarn run client:build && yarn run server:build"
+  },
+  "devDependencies": {
+    "babel-watch": "^7.5.0"
+  },
+  "dependencies": {
+    "@babel/cli": "^7.15.4",
+    "@babel/core": "^7.15.5",
+    "@babel/polyfill": "^7.12.1",
+    "@babel/preset-env": "^7.15.6",
+    "babel-plugin-module-resolver": "^4.1.0",
+    "concurrently": "^6.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "http-status-codes": "^2.1.4",
+    "morgan": "^1.10.0",
+    "path": "^0.12.7"
+  }
+}
