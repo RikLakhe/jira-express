@@ -17,8 +17,8 @@
     "start": "node ./build/index.js",
     "clean": "rm -rf build && mkdir build ",
     "build-babel": "babel -d ./build ./src -s",
-    "server:build": "yarn run clean && yarn run build-babel",
-    "client:build": "cd jira-client && yarn build",
+    "server:build": "yarn run clean && yarn install && yarn run build-babel",
+    "client:build": "cd jira-client && yarn install && yarn build",
     "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false yarn run client:build && yarn run server:build"
   },
   "devDependencies": {
