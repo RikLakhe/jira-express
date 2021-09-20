@@ -24,7 +24,7 @@ class Board extends Component {
     }
 
     componentDidMount() {
-        axios.get('https://jira-express-app.herokuapp.com/api/v3?boardId=' + this.state.id+'&sprintId='+ this.state.Rid).then(res => {
+        axios.get(process.env.REACT_APP_API_URL +'/v3?boardId=' + this.state.id+'&sprintId='+ this.state.Rid).then(res => {
             let pipeline = [];
             let inProgress = [];
             let completed = [];
