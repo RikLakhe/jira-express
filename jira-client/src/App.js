@@ -6,6 +6,7 @@ import {
 
 import Board from './container/Board';
 import Chart from './container/Chart';
+import Main from './container/Main';
 
 const Boards = ({ match }) => (
 <div>
@@ -29,6 +30,7 @@ const SingleChart = ({ match }) => (
 const App = () => (
   <Router>
     <div>
+      <Route path="/" component={ Main }/>
       <Route path="/boards" component={ Boards }/>
       <Route path="/single-board" component={ SingleBoard }/>
       <Route path="/single-chart" component={ SingleChart }/>
