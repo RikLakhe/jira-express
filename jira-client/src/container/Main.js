@@ -16,7 +16,7 @@ const Main = (props) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     axios
-      .post(process.env.REACT_APP_API_URL + "/v3/issues", {
+      .post("https://jira-express-app.herokuapp.com/v3/issues", {
         startDate,
         endDate,
         boardId: selectedBoard,
@@ -34,7 +34,7 @@ const Main = (props) => {
   const handleProjectSelect = (value) => {
     setSelectedProject(value);
     axios
-      .post(process.env.REACT_APP_API_URL + "/v3/boards", {
+      .post("https://jira-express-app.herokuapp.com/v3/boards", {
         projectKeyOrId: value,
       })
       .then((res) => {
@@ -49,7 +49,7 @@ const Main = (props) => {
 
   React.useEffect(() => {
     axios
-      .get(process.env.REACT_APP_API_URL + "/v3/projects")
+      .get("https://jira-express-app.herokuapp.com/v3/projects")
       .then((res) => {
         if (res && res.status === 200) {
           setProjectList(res.data);
