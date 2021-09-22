@@ -6,8 +6,6 @@ import logger from "morgan";
 import cors from 'cors'
 import path from 'path'
 
-import indexRouter from "./routes/index";
-import v2Router from "./routes/v2";
 import v3Router from "./routes/v3";
 
 const app = express();
@@ -23,8 +21,6 @@ app.use(
 )
 app.disable('etag');
 
-app.use('/api', indexRouter)
-app.use('/v2', v2Router)
 app.use('/v3', v3Router)
 
 app.get('*', (req, res) => {

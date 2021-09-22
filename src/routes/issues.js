@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/', (req, res) => {
     const {startDate, endDate, boardId} = req.body;
-    console.log(`Searching for issues between ${startDate} and ${endDate} on board ${boardId}`);
+    
     jira.board.getIssuesForBoard({
         boardId,
         maxResults: 1000,
