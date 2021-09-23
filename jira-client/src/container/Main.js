@@ -24,7 +24,8 @@ const Main = (props) => {
   const [error, setError] = React.useState(undefined);
   const [loading, setLoading] = React.useState(false);
 
-  // const handleProjectSelect = (value) => {
+  const handleProjectSelect = (value) => {
+    setSelectedProject(value)
   //   setSelectedBoard(undefined);
   //   setResult(undefined);
   //   setLoading(true);
@@ -42,7 +43,7 @@ const Main = (props) => {
   //       setError(err);
   //       setLoading(false);
   //     });
-  // };
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
