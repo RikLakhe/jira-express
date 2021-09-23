@@ -7,6 +7,7 @@ import cors from 'cors'
 import path from 'path'
 
 import v3Router from "./routes/v3";
+import v4Router from "./routes/v4";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(
 app.disable('etag');
 
 app.use('/v3', v3Router)
+app.use('/v4', v4Router)
 
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname,'..' ,'jira-client','build', 'index.html'));

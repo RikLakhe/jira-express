@@ -16,44 +16,43 @@ const Main = (props) => {
     moment().subtract(30, "days").format("YYYY-MM-DD")
   );
   const [endDate, setEndDate] = React.useState(moment().format("YYYY-MM-DD"));
-  const [selectedBoard, setSelectedBoard] = React.useState(undefined);
+  const [selectedProject, setSelectedProject] = React.useState(undefined);
   const [projectList, setProjectList] = React.useState([]);
-  const [boardList, setBoardList] = React.useState([]);
 
   const [result, setResult] = React.useState(undefined);
 
   const [error, setError] = React.useState(undefined);
   const [loading, setLoading] = React.useState(false);
 
-  const handleProjectSelect = (value) => {
-    setSelectedBoard(undefined);
-    setResult(undefined);
-    setLoading(true);
-    axios
-      .post("https://jira-express-app.herokuapp.com/v3/boards", {
-        projectKeyOrId: value,
-      })
-      .then((res) => {
-        if (res && res.status === 200) {
-          setBoardList(res.data.values);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        setError(err);
-        setLoading(false);
-      });
-  };
+  // const handleProjectSelect = (value) => {
+  //   setSelectedBoard(undefined);
+  //   setResult(undefined);
+  //   setLoading(true);
+  //   axios
+  //     .post("https://jira-express-app.herokuapp.com/v3/boards", {
+  //       projectKeyOrId: value,
+  //     })
+  //     .then((res) => {
+  //       if (res && res.status === 200) {
+  //         setBoardList(res.data.values);
+  //         setLoading(false);
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       setError(err);
+  //       setLoading(false);
+  //     });
+  // };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setResult(undefined);
     setLoading(true);
     axios
-      .post("https://jira-express-app.herokuapp.com/v3/issues", {
+      .post("https://jira-express-app.herokuapp.com/v4", {
         startDate,
         endDate,
-        boardId: selectedBoard,
+        projectKey: selectedProject,
       })
       .then((res) => {
         if (res && res.status === 200) {
@@ -100,12 +99,12 @@ const Main = (props) => {
             ))}
           </Select>
           <FormHelperText id="my-helper-project">
-            Select Project to get boards.
+            Select Project.
           </FormHelperText>
         </FormControl>
       )}
 
-      {boardList && boardList.length > 0 && (
+      {/* {boardList && boardList.length > 0 && (
         <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
           <InputLabel htmlFor="board">Board</InputLabel>
           <Select
@@ -121,9 +120,9 @@ const Main = (props) => {
           </Select>
           <FormHelperText id="my-helper-project">Select Board.</FormHelperText>
         </FormControl>
-      )}
+      )} */}
 
-      {selectedBoard && [
+      {/* {selectedBoard && [ */}
         <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
           <TextField
             id="startDate"
@@ -136,7 +135,7 @@ const Main = (props) => {
             }}
             onChange={(e) => setStartDate(e.target.value)}
           />
-        </FormControl>,
+        </FormControl>
         <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
           <TextField
             id="endDate"
@@ -149,10 +148,10 @@ const Main = (props) => {
             }}
             onChange={(e) => setEndDate(e.target.value)}
           />
-        </FormControl>,
-      ]}
+        </FormControl>
+      {/* ]} */}
 
-      {selectedBoard && startDate && endDate && (
+      {selectedProject && startDate && endDate && (
         <Button
           style={{ margin: "10px" }}
           variant="contained"
@@ -169,6 +168,10 @@ const Main = (props) => {
             ? (
             <p>
               <h3>Total SP:{result.totalSP}</h3>
+              <br />
+              <h3>Total Scope Change:{result.totalSChange}</h3>
+              <br />
+              <h3>Total Scope Creep:{result.totalSCreep}</h3>
               <br />
               <h3>Total Issues:{result?.issues?.length}</h3>
               <br />
