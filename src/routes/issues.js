@@ -15,7 +15,7 @@ router.post('/', (req, res) => {
         }else{
             let totalSP = 0;
             let temp = resp.issues.filter(issue=>{
-                let checker = issue.fields.statuscategorychangedate >= startDate && issue.fields.statuscategorychangedate <= endDate
+                let checker = issue.fields.updated >= startDate && issue.fields.updated <= endDate && (issue?.fields?.resolution && issue.fields.resolution.name==="Done")
                 if(checker){
                     if(issue.fields.customfield_10004){
                         totalSP += issue.fields.customfield_10004;
