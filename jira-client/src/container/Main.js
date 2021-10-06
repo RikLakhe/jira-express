@@ -10,6 +10,7 @@ import {
   FormHelperText,
   TextField,
 } from "@mui/material";
+import { API_URL } from "../constant/appConfig";
 
 const Main = (props) => {
   const [startDate, setStartDate] = React.useState(
@@ -33,7 +34,7 @@ const Main = (props) => {
     setResult(undefined);
     setLoading(true);
     axios
-      .post("https://jira-express-app.herokuapp.com/v4/issues", {
+      .post(API_URL + "/v4/issues", {
         startDate,
         endDate,
         projectKey: selectedProject,
@@ -53,7 +54,7 @@ const Main = (props) => {
   React.useEffect(() => {
     setLoading(true);
     axios
-      .get("https://jira-express-app.herokuapp.com/v3/projects")
+      .get(API_URL+"/v3/projects")
       .then((res) => {
         if (res && res.status === 200) {
           setProjectList(res.data);
