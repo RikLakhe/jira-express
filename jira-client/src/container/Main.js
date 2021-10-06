@@ -10,7 +10,12 @@ import {
   FormHelperText,
   TextField,
 } from "@mui/material";
+import { Line } from "react-chartjs-2";
+
 import { API_URL } from "../constant/appConfig";
+import { isEmpty } from "../util/commonUtil";
+
+import "./index.css"
 
 const Main = (props) => {
   const [startDate, setStartDate] = React.useState(
@@ -24,6 +29,8 @@ const Main = (props) => {
 
   const [error, setError] = React.useState(undefined);
   const [loading, setLoading] = React.useState(false);
+
+  const [lineData, setLineData] = React.useState({});
 
   const handleProjectSelect = (value) => {
     setSelectedProject(value)
@@ -42,6 +49,45 @@ const Main = (props) => {
       .then((res) => {
         if (res && res.status === 200) {
           setResult(res.data);
+
+          let tempLineData = {
+            labels: [],
+            datasets: [
+              {
+                label: "Total Story Point",
+                data: [],
+                fill: false,
+                borderColor: "rgba(75,192,192,1)",
+                tension: 0.1
+              },
+              {
+                label: "Total Scope Change",
+                data: [],
+                fill: false,
+                borderColor: "#742774",
+                tension: 0.1
+              },
+              {
+                label: "Total Scope Creep",
+                data: [],
+                fill: false,
+                borderColor: "#712324",
+                tension: 0.1
+              }
+            ] 
+          };
+
+          if(!isEmpty(res.data.sprint)){
+            Object.entries(res.data.sprint).forEach(([key, value]) => {
+              tempLineData.labels.push(value.name);
+              tempLineData.datasets[0].data.push(value.totalStoryPoint);
+              tempLineData.datasets[1].data.push(value.scopeChange);
+              tempLineData.datasets[2].data.push(value.scopeCreep);
+            });
+
+            setLineData(tempLineData);
+          }
+
           setLoading(false);
         }
       })
@@ -146,6 +192,8 @@ const Main = (props) => {
         </Button>
       )}
 
+      
+
         {
           loading 
           ? (<h3>Loading....</h3>)
@@ -158,18 +206,7 @@ const Main = (props) => {
               <br />
               <h3>Total Scope Creep:{result.totalSCreep}</h3>
               <br />
-              <h3>Total Issues:{result?.issues?.length}</h3>
-              <br />
-              {result?.issues && result?.issues?.length > 0 && (
-                <>
-                  <h5>List :</h5>
-                  <ul>
-                    {result.issues.map((issue) => (
-                      <li key={issue.id}>{issue.key}</li>
-                    ))}
-                  </ul>
-                </>
-              )}
+              <div className="chart-div"><Line data={lineData} /></div>
             </p>
           )
         : (<h3>No jira issues</h3>)}
