@@ -1,5 +1,5 @@
 import express from "express";
-import jira from "../jiraAPI";
+import jira from "../../jiraAPI";
 
 var router = express.Router();
 

@@ -26,23 +26,6 @@ const Main = (props) => {
 
   const handleProjectSelect = (value) => {
     setSelectedProject(value)
-  //   setSelectedBoard(undefined);
-  //   setResult(undefined);
-  //   setLoading(true);
-  //   axios
-  //     .post("https://jira-express-app.herokuapp.com/v3/boards", {
-  //       projectKeyOrId: value,
-  //     })
-  //     .then((res) => {
-  //       if (res && res.status === 200) {
-  //         setBoardList(res.data.values);
-  //         setLoading(false);
-  //       }
-  //     })
-  //     .catch((err) => {
-  //       setError(err);
-  //       setLoading(false);
-  //     });
   };
 
   const handleSubmit = (e) => {
@@ -50,7 +33,7 @@ const Main = (props) => {
     setResult(undefined);
     setLoading(true);
     axios
-      .post("https://jira-express-app.herokuapp.com/v4", {
+      .post("https://jira-express-app.herokuapp.com/v4/issues", {
         startDate,
         endDate,
         projectKey: selectedProject,
