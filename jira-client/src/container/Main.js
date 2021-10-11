@@ -15,7 +15,7 @@ import { Line } from "react-chartjs-2";
 import { API_URL } from "../constant/appConfig";
 import { isEmpty } from "../util/commonUtil";
 
-import "./index.css"
+import "./index.css";
 
 const Main = (props) => {
   const [startDate, setStartDate] = React.useState(
@@ -33,15 +33,16 @@ const Main = (props) => {
   const [lineData, setLineData] = React.useState({});
 
   const handleProjectSelect = (value) => {
-    setSelectedProject(value)
+    setSelectedProject(value);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setResult(undefined);
+    setLineData({});
     setLoading(true);
     axios
-      .post(API_URL + "/v4/issues", {
+      .post(API_URL + "/v3/search", {
         startDate,
         endDate,
         projectKey: selectedProject,
@@ -58,33 +59,62 @@ const Main = (props) => {
                 data: [],
                 fill: false,
                 borderColor: "rgba(75,192,192,1)",
-                tension: 0.1
+                tension: 0.1,
               },
               {
                 label: "Total Scope Change",
                 data: [],
                 fill: false,
                 borderColor: "#742774",
-                tension: 0.1
+                tension: 0.1,
               },
               {
                 label: "Total Scope Creep",
                 data: [],
                 fill: false,
                 borderColor: "#712324",
-                tension: 0.1
-              }
-            ] 
+                tension: 0.1,
+              },
+            ],
           };
 
-          if(!isEmpty(res.data.sprint)){
+          if (!isEmpty(res.data.sprint)) {
+            console.log('res.data.sprint',res.data.sprint)
+            if (Object.entries(res.data.sprint).length === 1) {
+              tempLineData = {
+                labels: [moment(startDate).format("MMM DD")],
+                datasets: [
+                  {
+                    label: "Total Story Point",
+                    data: [0],
+                    fill: false,
+                    borderColor: "rgba(75,192,192,1)",
+                    tension: 0.1,
+                  },
+                  {
+                    label: "Total Scope Change",
+                    data: [0],
+                    fill: false,
+                    borderColor: "#742774",
+                    tension: 0.1,
+                  },
+                  {
+                    label: "Total Scope Creep",
+                    data: [0],
+                    fill: false,
+                    borderColor: "#712324",
+                    tension: 0.1,
+                  },
+                ],
+              };
+            }
+
             Object.entries(res.data.sprint).forEach(([key, value]) => {
               tempLineData.labels.push(value.name);
               tempLineData.datasets[0].data.push(value.totalStoryPoint);
               tempLineData.datasets[1].data.push(value.scopeChange);
               tempLineData.datasets[2].data.push(value.scopeCreep);
             });
-
             setLineData(tempLineData);
           }
 
@@ -100,7 +130,7 @@ const Main = (props) => {
   React.useEffect(() => {
     setLoading(true);
     axios
-      .get(API_URL+"/v3/projects")
+      .get(API_URL + "/v3/projects")
       .then((res) => {
         if (res && res.status === 200) {
           setProjectList(res.data);
@@ -134,53 +164,32 @@ const Main = (props) => {
           </FormHelperText>
         </FormControl>
       )}
-
-      {/* {boardList && boardList.length > 0 && (
-        <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
-          <InputLabel htmlFor="board">Board</InputLabel>
-          <Select
-            id="board"
-            aria-describedby="my-helper-board"
-            onChange={(e) => setSelectedBoard(e.target.value)}
-          >
-            {boardList.map((board) => (
-              <MenuItem key={board.id} value={board.id}>
-                {board.name}
-              </MenuItem>
-            ))}
-          </Select>
-          <FormHelperText id="my-helper-project">Select Board.</FormHelperText>
-        </FormControl>
-      )} */}
-
-      {/* {selectedBoard && [ */}
-        <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
-          <TextField
-            id="startDate"
-            label="Start Date"
-            type="date"
-            defaultValue={moment().subtract(30, "days").format("YYYY-MM-DD")}
-            sx={{ width: 220 }}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </FormControl>
-        <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
-          <TextField
-            id="endDate"
-            label="End Date"
-            type="date"
-            defaultValue={moment().format("YYYY-MM-DD")}
-            sx={{ width: 220 }}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </FormControl>
-      {/* ]} */}
+      <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
+        <TextField
+          id="startDate"
+          label="Start Date"
+          type="date"
+          defaultValue={moment().subtract(30, "days").format("YYYY-MM-DD")}
+          sx={{ width: 220 }}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+      </FormControl>
+      <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
+        <TextField
+          id="endDate"
+          label="End Date"
+          type="date"
+          defaultValue={moment().format("YYYY-MM-DD")}
+          sx={{ width: 220 }}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          onChange={(e) => setEndDate(e.target.value)}
+        />
+      </FormControl>
 
       {selectedProject && startDate && endDate && (
         <Button
@@ -192,24 +201,25 @@ const Main = (props) => {
         </Button>
       )}
 
-      
-
-        {
-          loading 
-          ? (<h3>Loading....</h3>)
-          : result 
-            ? (
-            <p>
-              <h3>Total SP:{result.totalSP}</h3>
-              <br />
-              <h3>Total Scope Change:{result.totalSChange}</h3>
-              <br />
-              <h3>Total Scope Creep:{result.totalSCreep}</h3>
-              <br />
-              <div className="chart-div"><Line data={lineData} /></div>
-            </p>
-          )
-        : (<h3>No jira issues</h3>)}
+      {loading ? (
+        <h3>Loading....</h3>
+      ) : result ? (
+        <p>
+          <h3>Total SP:{result.totalSP}</h3>
+          <br />
+          <h3>Total Scope Change:{result.totalSChange}</h3>
+          <br />
+          <h3>Total Scope Creep:{result.totalSCreep}</h3>
+          <br />
+          {lineData && (
+            <div className="chart-div">
+              <Line data={lineData} />
+            </div>
+          )}
+        </p>
+      ) : (
+        <h3>No jira issues</h3>
+      )}
     </>
   );
 };
