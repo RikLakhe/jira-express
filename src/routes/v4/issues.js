@@ -3,32 +3,6 @@ import jira from "../../jiraAPI";
 
 var router = express.Router();
 
-// "customfield_10004": 8 (aka Story point)
-// "customfield_12315": [
-//     {
-//         "self": "https://lftechnology.atlassian.net/rest/api/2/customFieldOption/10931",
-//         "value": "Scope Change",
-//         "id": "10931"
-//     },
-//     {
-//         "self": "https://lftechnology.atlassian.net/rest/api/2/customFieldOption/10932",
-//         "value": "Scope Creep",
-//         "id": "10932"
-//     }
-// ],
-// customfield_10007:[
-//   0: {id: 2097, name: "Vyaguta Sprint 13", state: "closed", boardId: 599,…}
-//   boardId: 599
-//   completeDate: "2021-09-13T05:32:54.106Z"
-//   endDate: "2021-09-13T09:36:00.000Z"
-//   goal: "- To complete WFH enhancement for all users\n- To integrate timesheet and billing\n- To complete consistent header"
-//   id: 2097
-//   name: "Vyaguta Sprint 13"
-//   startDate: "2021-08-30T09:36:15.901Z"
-//   state: "closed"
-//   1: {id: 2084, name: "Vyaguta Sprint 12", state: "closed", boardId: 599,…}
-// ]
-
 router.post("/", async function (req, res) {
   const { startDate, endDate, projectKey } = req.body;
 

@@ -42,7 +42,7 @@ const Main = (props) => {
     setLineData({});
     setLoading(true);
     axios
-      .post(API_URL + "/v3/search", {
+      .post(API_URL + "/v4/search", {
         startDate,
         endDate,
         projectKey: selectedProject,
@@ -79,7 +79,7 @@ const Main = (props) => {
           };
 
           if (!isEmpty(res.data.sprint)) {
-            console.log('res.data.sprint',res.data.sprint)
+            console.log("res.data.sprint", res.data.sprint);
             if (Object.entries(res.data.sprint).length === 1) {
               tempLineData = {
                 labels: [moment(startDate).format("MMM DD")],
@@ -109,11 +109,30 @@ const Main = (props) => {
               };
             }
 
-            Object.entries(res.data.sprint).forEach(([key, value]) => {
+            Object.entries(res.data.sprint).forEach(async ([key, value]) => {
               tempLineData.labels.push(value.name);
               tempLineData.datasets[0].data.push(value.totalStoryPoint);
               tempLineData.datasets[1].data.push(value.scopeChange);
               tempLineData.datasets[2].data.push(value.scopeCreep);
+
+              console.log('index',key)
+              await axios
+                .post(API_URL + "/v4/sprints", {
+                  boardId: value.boardId,
+                  spintId: value.id,
+                })
+                .then((res) => {
+                  if (res && res.status === 200) {
+                    console.log('value.id',value.id)
+                    console.log("res.data",res.data)
+                  }
+                })
+                .catch((err) => {
+                  console.log(err);
+                });
+
+              console.log('index end',key)
+
             });
             setLineData(tempLineData);
           }
