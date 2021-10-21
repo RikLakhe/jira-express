@@ -13,7 +13,8 @@ router.post("/", async function (req, res) {
   while (true) {
     let chunkData = await jira
       .searchJira(
-        `resolved >= ${startDate} AND resolved <= ${endDate} AND project = ${projectKey} AND resolution = Done ORDER BY cf[10004] DESC, created DESC`,
+        `created >= ${startDate} AND created <= ${endDate} AND project = ${projectKey} ORDER BY cf[10004] DESC, created DESC`,
+        // `resolved >= ${startDate} AND resolved <= ${endDate} AND project = ${projectKey} AND resolution = Done ORDER BY cf[10004] DESC, created DESC`,
         {
           startAt: issues.length,
           maxResults: chunk_size,
@@ -21,6 +22,7 @@ router.post("/", async function (req, res) {
             "customfield_10004",
             "customfield_12315",
             "customfield_10007",
+            "resolution", "resolutiondate"
           ],
         }
       )
@@ -35,11 +37,12 @@ router.post("/", async function (req, res) {
     }
   }
 
-  const { sprint, totalSP, totalSChange, totalSCreep } = processIssues(issues);
+  const { sprint, totalSP, totalSChange, totalSCreep, totalSPCompleted } = processIssues(issues);
 
   res.status(200).send({
     total: issues.length,
     totalSP,
+    totalSPCompleted,
     totalSChange,
     totalSCreep,
     sprint,

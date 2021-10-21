@@ -65,10 +65,18 @@ const Main = (props) => {
             labels: [],
             datasets: [
               {
-                label: "Total Story Point",
+                label: "Total Story Point Estimation",
                 data: [],
                 fill: false,
                 borderColor: "rgba(75,192,192,1)",
+                tension: 0.1,
+              },
+              {
+                label: "Total Story Point Complete",
+                data: [],
+                fill: true,
+                borderColor: "rgba(75,100,55,1)",
+                backgroundColor: "rgba(75,100,55,0.2)",
                 tension: 0.1,
               },
               {
@@ -89,13 +97,19 @@ const Main = (props) => {
           };
 
           if (!isEmpty(res.data.sprint)) {
-            console.log("res.data.sprint", res.data.sprint);
             if (Object.entries(res.data.sprint).length === 1) {
               tempLineData = {
                 labels: [moment(startDate).format("MMM DD")],
                 datasets: [
                   {
-                    label: "Total Story Point",
+                    label: "Total Story Point Estimation",
+                    data: [0],
+                    fill: false,
+                    borderColor: "rgba(75,192,192,1)",
+                    tension: 0.1,
+                  },
+                  {
+                    label: "Total Story Point Complete",
                     data: [0],
                     fill: false,
                     borderColor: "rgba(75,192,192,1)",
@@ -124,8 +138,9 @@ const Main = (props) => {
             Object.entries(res.data.sprint).forEach(async ([key, value]) => {
               tempLineData.labels.push(value.name);
               tempLineData.datasets[0].data.push(value.totalStoryPoint);
-              tempLineData.datasets[1].data.push(value.scopeChange);
-              tempLineData.datasets[2].data.push(value.scopeCreep);
+              tempLineData.datasets[1].data.push(value.totalStoryPointComplete);
+              tempLineData.datasets[2].data.push(value.scopeChange);
+              tempLineData.datasets[3].data.push(value.scopeCreep);
               tempSprintList.push(value);
             });
 
@@ -225,6 +240,7 @@ const Main = (props) => {
           <>
             <Grid item xs={6}>
               <h3>Total SP:{result.totalSP}</h3>
+              <h3>Total SP Complete:{result.totalSPCompleted}</h3>
               <h3>Total Scope Change:{result.totalSChange}</h3>
               <h3>Total Scope Creep:{result.totalSCreep}</h3>
               <Card variant="outlined">
@@ -250,36 +266,94 @@ const Main = (props) => {
 };
 
 const SprintReport = (props) => {
+  const { sprintList } = props;
+
   const [expanded, setExpanded] = React.useState(false);
   const [sprintLoading, setSprintLoading] = React.useState(false);
   const [sprintData, setSprintData] = React.useState(undefined);
-  const { sprintList } = props;
+  const [lineData, setLineData] = React.useState({});
 
   if (sprintList && sprintList.length < 0) {
     return <Card variant="outlined">No sprint data</Card>;
   }
 
-  const handleSprintSelect = (sprint) => async (event, isExpanded) => {
+  const handleSprintSelect = (sprint) => (event, isExpanded) => {
     setSprintLoading(true);
     setSprintData(undefined);
     setExpanded(sprint.name);
+    setLineData({});
 
-    await axios
+    axios
       .post(API_URL + "/v4/sprints", {
         boardId: sprint.boardId,
         spintId: sprint.id,
       })
       .then((res) => {
+        console.log("res sprint search", res.data);
         if (res && res.status === 200) {
-          console.log("here", res.data);
           setSprintData(res.data);
+
+          let startDate = moment(res.data.sprint.isoStartDate);
+          let endDate = moment(res.data.sprint.isoEndDate);
+          let totalEstimation =
+            (res.data.contents.completedIssuesEstimateSum.value || 0) +
+            (res.data.contents.issuesNotCompletedEstimateSum.value || 0);
+
+          let temp = {
+            labels: [startDate.format("DD MMM")],
+            datasets: [
+              {
+                label: "Story Point",
+                data: [totalEstimation],
+                fill: false,
+                borderColor: "rgba(150,0,0)",
+                stepped: true,
+              },
+            ],
+          };
+
+          // iterate through issues to get date and burndown
+          res.data.issues.map((issue) => {
+            let resolutionDateMoment = moment(issue.fields.resolutiondate);
+
+            if (
+              issue.fields.resolutiondate &&
+              resolutionDateMoment.isAfter(startDate) &&
+              resolutionDateMoment.isBefore(endDate)
+            ) {
+              let indexFromLabel = temp.labels.indexOf(
+                resolutionDateMoment.format("DD MMM")
+              );
+
+              totalEstimation -= issue.fields.customfield_10004 || 0;
+
+              if (indexFromLabel === -1) {
+                temp.labels.push(resolutionDateMoment.format("DD MMM"));
+                temp.datasets[0].data.push(totalEstimation);
+              } else {
+                temp.datasets[0].data[indexFromLabel] = totalEstimation;
+              }
+            }
+          });
+
+          if (
+            temp.labels[temp.labels.length - 1] !== endDate.format("DD MMM")
+          ) {
+            // at last
+            temp.labels.push(endDate.format("DD MMM"));
+            temp.datasets[0].data.push(
+              res.data.contents.issuesNotCompletedEstimateSum.value || 0
+            );
+          }
+
+          setLineData(temp);
+
+          setSprintLoading(false);
         }
       })
       .catch((err) => {
         console.log(err);
       });
-
-    setSprintLoading(false);
   };
 
   return (
@@ -317,20 +391,43 @@ const SprintReport = (props) => {
 
                 <Typography>
                   <strong>Inital Estimation: </strong>
-                  {sprintData.contents.completedIssuesEstimateSum.value+sprintData.contents.issuesNotCompletedEstimateSum.value}
+                  {(sprintData.contents.completedIssuesEstimateSum.value || 0) +
+                    (sprintData.contents.issuesNotCompletedEstimateSum.value ||
+                      0)}
                 </Typography>
 
                 <Typography>
                   <strong>Completed: </strong>
-                  {sprintData.contents.completedIssuesEstimateSum.value}<br />
-                  {sprintData.contents.completedIssues.map((issue) => (issue.key+" "))}
+                  {sprintData.contents.completedIssuesEstimateSum.value || 0}
+                  <br />
+                  {sprintData.contents.completedIssues.map(
+                    (issue) => issue.key + " "
+                  )}
                 </Typography>
 
                 <Typography>
                   <strong>Remaining: </strong>
-                  {sprintData.contents.issuesNotCompletedEstimateSum.value}<br />
-                  {sprintData.contents.issuesNotCompletedInCurrentSprint.map((issue) => (issue.key+" "))}
+                  {sprintData.contents.issuesNotCompletedEstimateSum.value || 0}
+                  <br />
+                  {sprintData.contents.issuesNotCompletedInCurrentSprint.map(
+                    (issue) => issue.key + " "
+                  )}
                 </Typography>
+
+                {lineData && !isEmpty(lineData) && (
+                  <div className="chart-div">
+                    <Line
+                      data={lineData}
+                      options={{
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <h3>No sprint data</h3>
