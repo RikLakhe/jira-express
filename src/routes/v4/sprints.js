@@ -1,5 +1,7 @@
 import express from "express";
-import jira from "../../jiraAPI";
+import jira from "../../jiraClient";
+import jiraAPI from '../../jiraAPI';
+import jiraConnector from "../../jiraConnector";
 
 var router = express.Router();
 
@@ -13,22 +15,19 @@ router.post("/", async function (req, res) {
 
   while (true) {
     let chunkData = await jira
-      .searchJira(
-        `Sprint = ${spintId} order by resolutiondate ASC`,
-        {
-          startAt: issues.length,
-          maxResults: chunk_size,
-          fields: [
-            "customfield_10004",
-            "customfield_12315",
-            "customfield_10007",
-            "resolution", "resolutiondate"
-          ],
-        }
+      .issueSearch.searchForIssuesUsingJqlPost( 
+        {jql:`Sprint = ${spintId} order by resolutiondate ASC`, maxResults: chunk_size, startAt: issues.length, 
+        fields: ["customfield_10004",
+        "customfield_12315",
+        "customfield_10007",
+        "resolution", "resolutiondate"] }
+      ,
       )
       .catch((err) => {
         res.status(500).send(err);
       });
+
+      console.log('issues --------', chunkData)
 
     issues = issues.concat(chunkData.issues);
     chunk_size = Math.abs(chunk_size - chunkData.total);
@@ -37,12 +36,16 @@ router.post("/", async function (req, res) {
     }
   }
 
-  await jira
-    .getSprintIssues(boardId, spintId)
+const jql = `Sprint=${spintId} and board=637`;
+
+
+  await jira.issueSearch.searchForIssuesUsingJqlPost({jql, fields: ['summary', 'contents', 'sprint', 'status'] })
     .then(data => {
+      console.log("data --------", data)
       res.status(200).send({contents: data.contents, issues: issues, sprint: data.sprint});
     })
     .catch((err) => {
+      console.error('error -----------',err)
       res.status(500).send(err);
     });
 });

@@ -4,7 +4,7 @@ import jira from '../../jiraClient';
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    jira.project.getAllProjects({
+    jira.projects.getAllProjects({
         maxResults: 500
     },(err,resp)=>{
         if(err){

@@ -1,12 +1,15 @@
-import JiraClient from "jira-connector";
 import jiraConstants from "./constants";
+import { Version3Client } from 'jira.js';
 
-const jira = new JiraClient({
-  host: jiraConstants.host,
-  basic_auth: {
-    username: jiraConstants.username,
-    password: jiraConstants.pwd,
+  const jira = new Version3Client({
+    host: jiraConstants.host,
+    newErrorHandling: true,
+    authentication: {
+    basic: {
+      email: jiraConstants.username,
+      apiToken: jiraConstants.pwd,
+    },
   },
-});
+  })
 
 export default jira;

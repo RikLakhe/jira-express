@@ -11,7 +11,7 @@ import v4Router from "./routes/v4";
 
 const app = express();
 
-const port = process.env.PORT || "3001";
+const port = process.env.PORT || "5000";
 
 app.use(
     logger('dev'),
@@ -35,14 +35,14 @@ app.use((req,res,next)=>{
     next(err);
 })
 
-app.use((err,req,res,next)=>{
-    res.status(err.status || 500);
-    res.json({
-        error:{
-            message:err.message
-        }
-    })
-});
+// app.use((err,req,res,next)=>{
+//     res.status(err.status || 500);
+//     res.json({
+//         error:{
+//             message:err.message
+//         }
+//     })
+// });
 
 app.listen(port, () => {
     console.log(`App running on port ${port}.`)
