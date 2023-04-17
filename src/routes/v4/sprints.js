@@ -27,8 +27,6 @@ router.post("/", async function (req, res) {
         res.status(500).send(err);
       });
 
-      console.log('issues --------', chunkData)
-
     issues = issues.concat(chunkData.issues);
     chunk_size = Math.abs(chunk_size - chunkData.total);
     if (issues.length >= chunkData.total) {
@@ -36,16 +34,14 @@ router.post("/", async function (req, res) {
     }
   }
 
-const jql = `Sprint=${spintId} and board=637`;
+const jql = `Sprint=${spintId} and board=${boardId}`;
 
 
   await jira.issueSearch.searchForIssuesUsingJqlPost({jql, fields: ['summary', 'contents', 'sprint', 'status'] })
     .then(data => {
-      console.log("data --------", data)
       res.status(200).send({contents: data.contents, issues: issues, sprint: data.sprint});
     })
     .catch((err) => {
-      console.error('error -----------',err)
       res.status(500).send(err);
     });
 });
