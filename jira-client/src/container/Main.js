@@ -347,8 +347,6 @@ const SprintReport = (props) => {
           }
 
           setLineData(temp);
-
-          setSprintLoading(false);
         }
       })
       .catch((err) => {

@@ -1,5 +1,5 @@
 import express from "express";
-import jira from "../../jiraAPI";
+import jira from "../../jiraClient";
 import { processIssues } from "../../utils/commonUtils";
 
 var router = express.Router();
@@ -11,20 +11,13 @@ router.post("/", async function (req, res) {
   let chunk_size = 100;
 
   while (true) {
-    let chunkData = await jira
-      .searchJira(
-        `created >= ${startDate} AND created <= ${endDate} AND project = ${projectKey} ORDER BY cf[10004] DESC, created DESC`,
+    let chunkData = await jira.issueSearch.searchForIssuesUsingJqlPost({jql: `created >= ${startDate} AND created <= ${endDate} AND project = ${projectKey} ORDER BY cf[10004] DESC, created DESC`, maxResults: chunk_size, startAt: issues.length, 
+    fields: ["customfield_10004",
+        "customfield_12315",
+        "customfield_10007",
+        "resolution", "resolutiondate"] }
+      ,
         // `resolved >= ${startDate} AND resolved <= ${endDate} AND project = ${projectKey} AND resolution = Done ORDER BY cf[10004] DESC, created DESC`,
-        {
-          startAt: issues.length,
-          maxResults: chunk_size,
-          fields: [
-            "customfield_10004",
-            "customfield_12315",
-            "customfield_10007",
-            "resolution", "resolutiondate"
-          ],
-        }
       )
       .catch((err) => {
         res.status(500).send(err);
