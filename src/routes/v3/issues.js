@@ -6,7 +6,7 @@ const router = express.Router();
 router.post('/', (req, res) => {
     const {startDate, endDate, boardId} = req.body;
     
-    jira.board.getIssuesForBoard({
+    jira.issues.getEvents({
         boardId,
         maxResults: 1000,
     },(err,resp)=>{

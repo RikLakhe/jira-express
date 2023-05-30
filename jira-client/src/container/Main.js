@@ -171,7 +171,7 @@ const Main = (props) => {
         setError(err);
         setLoading(false);
       });
-  }, [true]);
+  }, []);
 
   return (
     <>
@@ -270,8 +270,17 @@ const SprintReport = (props) => {
 
   const [expanded, setExpanded] = React.useState(false);
   const [sprintLoading, setSprintLoading] = React.useState(false);
-  const [sprintData, setSprintData] = React.useState(undefined);
   const [lineData, setLineData] = React.useState({});
+  const [resData, setResData] = React.useState({
+    startDate: "",
+    endDate: "",
+    sprint: {},
+    totalSp: 0,
+    completedSp: 0,
+    completedKeys: [],
+    remainingKeys: [],
+    remainingSp: 0
+  })
 
   if (sprintList && sprintList.length < 0) {
     return <Card variant="outlined">No sprint data</Card>;
@@ -279,7 +288,6 @@ const SprintReport = (props) => {
 
   const handleSprintSelect = (sprint) => (event, isExpanded) => {
     setSprintLoading(true);
-    setSprintData(undefined);
     setExpanded(sprint.name);
     setLineData({});
 
@@ -289,15 +297,12 @@ const SprintReport = (props) => {
         spintId: sprint.id,
       })
       .then((res) => {
-        console.log("res sprint search", res.data);
         if (res && res.status === 200) {
-          setSprintData(res.data);
+          setResData(res.data)
 
-          let startDate = moment(res.data.sprint.isoStartDate);
-          let endDate = moment(res.data.sprint.isoEndDate);
-          let totalEstimation =
-            (res.data.contents.completedIssuesEstimateSum.value || 0) +
-            (res.data.contents.issuesNotCompletedEstimateSum.value || 0);
+          let startDate = moment(res.data.sprint.startDate);
+          let endDate = moment(res.data.sprint.endDate);
+          let totalEstimation = res.data.totalSp
 
           let temp = {
             labels: [startDate.format("DD MMM")],
@@ -311,9 +316,9 @@ const SprintReport = (props) => {
               },
             ],
           };
-
+          let sortedIssues = res.data.issues.issues.sort((a, b) => new Date(a.fields.resolutiondate) - new Date(b.fields.resolutiondate))
           // iterate through issues to get date and burndown
-          res.data.issues.map((issue) => {
+          sortedIssues.forEach((issue) => {
             let resolutionDateMoment = moment(issue.fields.resolutiondate);
 
             if (
@@ -342,13 +347,11 @@ const SprintReport = (props) => {
             // at last
             temp.labels.push(endDate.format("DD MMM"));
             temp.datasets[0].data.push(
-              res.data.contents.issuesNotCompletedEstimateSum.value || 0
+              res.data.remainingSp || 0
             );
           }
-
-          setLineData(temp);
-
           setSprintLoading(false);
+          setLineData(temp);
         }
       })
       .catch((err) => {
@@ -362,6 +365,7 @@ const SprintReport = (props) => {
         <Accordion
           expanded={expanded === sprint.name}
           onChange={handleSprintSelect(sprint)}
+          key={index}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography variant="h6">{sprint.name}</Typography>
@@ -369,16 +373,16 @@ const SprintReport = (props) => {
           <AccordionDetails>
             {sprintLoading ? (
               <h3>Loading....</h3>
-            ) : sprintData ? (
+            ) : resData ? (
               <div>
                 <Typography>
                   <strong>Start Date: </strong>
-                  {moment(sprintData.sprint.isoStartDate).format("YYYY/MM/DD")}
+                  {moment(resData.sprint.startDate).format("YYYY/MM/DD")}
                 </Typography>
-                {sprintData.sprint.completeDate !== "None" && (
+                {resData.sprint.endDate !== "None" && (
                   <Typography>
                     <strong>Complete Date: </strong>
-                    {moment(sprintData.sprint.completeDate).format(
+                    {moment(resData.sprint.endDate).format(
                       "YYYY/MM/DD"
                     )}
                   </Typography>
@@ -386,31 +390,29 @@ const SprintReport = (props) => {
                 <Typography style={{ whiteSpace: "pre-line" }}>
                   <strong>Goals</strong>
                   <br />
-                  {sprintData.sprint.goal}
+                  {resData.sprint.goal}
                 </Typography>
 
                 <Typography>
                   <strong>Inital Estimation: </strong>
-                  {(sprintData.contents.completedIssuesEstimateSum.value || 0) +
-                    (sprintData.contents.issuesNotCompletedEstimateSum.value ||
-                      0)}
+                  {resData.totalSp}
                 </Typography>
 
                 <Typography>
                   <strong>Completed: </strong>
-                  {sprintData.contents.completedIssuesEstimateSum.value || 0}
+                  {resData.completedSp}
                   <br />
-                  {sprintData.contents.completedIssues.map(
-                    (issue) => issue.key + " "
+                  {resData.completedKeys.map(
+                    (key) => key + " "
                   )}
                 </Typography>
 
                 <Typography>
                   <strong>Remaining: </strong>
-                  {sprintData.contents.issuesNotCompletedEstimateSum.value || 0}
+                  {resData.remainingSp}
                   <br />
-                  {sprintData.contents.issuesNotCompletedInCurrentSprint.map(
-                    (issue) => issue.key + " "
+                  {resData.remainingKeys.map(
+                    (key) => key + " "
                   )}
                 </Typography>
 

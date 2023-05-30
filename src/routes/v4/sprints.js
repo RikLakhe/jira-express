@@ -1,50 +1,45 @@
 import express from "express";
-import jira from "../../jiraAPI";
+import * as sprintService from "../../service/sprint";
 
 var router = express.Router();
 
-// getSprintIssues(boardId,spintId)
-
 router.post("/", async function (req, res) {
-  const { spintId, boardId } = req.body;
-
-  let issues = [];
-  let chunk_size = 100;
-
-  while (true) {
-    let chunkData = await jira
-      .searchJira(
-        `Sprint = ${spintId} order by resolutiondate ASC`,
-        {
-          startAt: issues.length,
-          maxResults: chunk_size,
-          fields: [
-            "customfield_10004",
-            "customfield_12315",
-            "customfield_10007",
-            "resolution", "resolutiondate"
-          ],
-        }
-      )
-      .catch((err) => {
-        res.status(500).send(err);
-      });
-
-    issues = issues.concat(chunkData.issues);
-    chunk_size = Math.abs(chunk_size - chunkData.total);
-    if (issues.length >= chunkData.total) {
-      break;
-    }
+  const { spintId } = req.body;
+  let responseData = {}
+  let totalSp = 0
+  let completedSp = 0
+  let remainingSp = 0
+  let completedKeys = []
+  let remainingKeys = []
+  let sprint = await sprintService.getSprintDetails(spintId);
+  let issues = await sprintService.getAllIssueOfSprint(spintId);
+  if (sprint.status != 200) {
+    res.status(500).send(sprint)
   }
+  if (issues.status != 200) {
+    res.status(500).send(issues)
+  }
+  responseData.sprint = sprint.data
+  responseData.issues = issues.data
+  issues.data.issues.map(item => {
+    totalSp += (item.fields.customfield_10004 ?? 0)
+    if (item.fields.status.name === "Done") {
+      completedSp += (item.fields.customfield_10004 ?? 0)
+      completedKeys.push(item.key)
+    } else {
+      remainingSp += (item.fields.customfield_10004 ?? 0)
+      remainingKeys.push(item.key)
+    }
+    console.log(`${item.key}:${item.fields.status.name}`)
+  })
+  responseData.totalSp = totalSp
+  responseData.completedSp = completedSp
+  responseData.remainingSp = remainingSp
+  responseData.completedKeys = completedKeys
+  responseData.remainingKeys = remainingKeys
+  res.status(200).send(responseData)
+})
 
-  await jira
-    .getSprintIssues(boardId, spintId)
-    .then(data => {
-      res.status(200).send({contents: data.contents, issues: issues, sprint: data.sprint});
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-});
+
 
 export default router;

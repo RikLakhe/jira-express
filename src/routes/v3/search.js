@@ -19,6 +19,8 @@ router.post("/", async (req, res) => {
       fields: ["customfield_10004", "customfield_12315", "customfield_10007"],
     });
 
+    console.log("issues ----------", chunkData)
+
     issues = issues.concat(chunkData.issues);
     chunk_size = Math.abs(chunk_size - chunkData.total);
     if (issues.length >= chunkData.total) {
@@ -28,14 +30,14 @@ router.post("/", async (req, res) => {
 
   const { sprint, totalSP, totalSChange, totalSCreep } = processIssues(issues);
 
-  res.status(200).send({
-    total: issues.length,
-    totalSP,
-    totalSChange,
-    totalSCreep,
-    sprint,
-    issues,
-  });
+  // res.status(200).send({
+  //   total: issues.length,
+  //   totalSP,
+  //   totalSChange,
+  //   totalSCreep,
+  //   sprint,
+  //   issues,
+  // });
 });
 
 export default router;
